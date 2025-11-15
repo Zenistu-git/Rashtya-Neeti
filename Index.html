@@ -1,0 +1,582 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>School Election — Vote</title>
+<style>
+  :root{
+    --bg:#f7f9fc;
+    --card:#ffffff;
+    --muted:#6b7280;
+    --accent1:#60a5fa; /* blue */
+    --accent2:#f472b6; /* pink */
+    --accent3:#f6c86b; /* yellow */
+    --accent4:#34d399; /* green */
+    --accent5:#a78bfa; /* purple */
+    --accent6:#fb923c; /* orange */
+    --accent7:#60a5fa; /* repeat */
+    --glass: rgba(255,255,255,0.6);
+    --radius:12px;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  }
+
+  html,body{
+    height:100%;
+    margin:0;
+    background: linear-gradient(180deg, #f0f6ff 0%, var(--bg) 100%);
+    color:#0f172a;
+  }
+
+  .wrap{
+    max-width:1000px;
+    margin:28px auto;
+    padding:20px;
+  }
+
+  header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+
+  .brand{
+    display:flex;
+    gap:12px;
+    align-items:center;
+  }
+
+  .logo{
+    width:52px;
+    height:52px;
+    border-radius:12px;
+    background:linear-gradient(135deg,var(--accent1),var(--accent5));
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:white;
+    font-weight:700;
+    box-shadow:0 6px 18px rgba(16,24,40,0.06);
+    flex-shrink:0;
+  }
+
+  h1{ font-size:20px; margin:0; }
+  p.lead{ margin:0; color:var(--muted); font-size:13px }
+
+  main{
+    margin-top:18px;
+    display:grid;
+    gap:18px;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:14px;
+  }
+
+  @media (max-width:800px){
+    .grid{ grid-template-columns: 1fr; }
+  }
+
+  .position-card{
+    background:var(--card);
+    border-radius:var(--radius);
+    padding:14px;
+    box-shadow: 0 6px 18px rgba(16,24,40,0.03);
+    transition: transform .18s ease, box-shadow .18s ease;
+    border:1px solid rgba(15,23,42,0.03);
+  }
+  .position-card:hover{ transform: translateY(-4px); box-shadow:0 10px 30px rgba(16,24,40,0.06); }
+
+  .pos-head{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:10px;
+  }
+
+  .pos-dot{
+    width:14px;height:14px;border-radius:4px;flex-shrink:0;
+  }
+
+  .candidates{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-top:6px;
+  }
+
+  label.option{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:8px;
+    border-radius:10px;
+    cursor:pointer;
+    user-select:none;
+    border:1px solid rgba(2,6,23,0.03);
+  }
+
+  label.option input[type="radio"]{
+    accent-color: #2563eb;
+    width:18px;height:18px;
+  }
+
+  .small{ font-size:13px;color:var(--muted); }
+
+  .controls{
+    display:flex;
+    gap:12px;
+    margin-top:6px;
+    align-items:center;
+  }
+
+  .btn{
+    border:0;
+    background:linear-gradient(90deg,var(--accent1),var(--accent5));
+    color:white;
+    padding:10px 14px;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:600;
+    box-shadow:0 8px 18px rgba(96,165,250,0.16);
+  }
+  .btn.ghost{
+    background:transparent;
+    box-shadow:none;
+    color:var(--muted);
+    border:1px solid rgba(2,6,23,0.06);
+    font-weight:600;
+  }
+  .btn:disabled{ opacity:.6; cursor:not-allowed; transform:none; box-shadow:none; }
+
+  .meta{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    justify-content:flex-end;
+    flex:1;
+  }
+
+  footer{
+    margin-top:8px;
+    text-align:center;
+    color:var(--muted);
+    font-size:13px;
+  }
+
+  /* Submission overlay area for Next Voter */
+  .after-submit{
+    display:none;
+    margin-top:8px;
+    padding:12px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.7), rgba(255,255,255,0.9));
+    border-radius:10px;
+    border:1px dashed rgba(16,24,40,0.06);
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .after-submit.show{ display:flex; }
+
+  /* Admin panel hidden at bottom */
+  #adminPanel{
+    position:relative;
+    margin-top:18px;
+    border-radius:12px;
+    overflow:hidden;
+    transform-origin: top;
+    transition: max-height .28s ease, opacity .22s ease, margin-top .22s ease;
+    max-height:0;
+    opacity:0;
+    pointer-events:none;
+    border:1px solid rgba(2,6,23,0.04);
+  }
+
+  #adminPanel.open{
+    max-height:1000px;
+    opacity:1;
+    pointer-events:auto;
+    margin-top:18px;
+  }
+
+  .admin-inner{
+    background: linear-gradient(180deg, #ffffff, #fbfdff);
+    padding:14px;
+  }
+
+  .admin-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:12px;
+  }
+
+  .results-wrap{
+    background:linear-gradient(180deg, rgba(250,250,255,0.9), rgba(255,255,255,0.95));
+    border-radius:10px;
+    padding:12px;
+    border:1px solid rgba(2,6,23,0.04);
+  }
+
+  .results-scroll{
+    max-height:260px;
+    overflow:auto;
+    padding-right:6px;
+  }
+
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:14px;
+  }
+  th,td{
+    text-align:left;
+    padding:8px 6px;
+    border-bottom:1px dashed rgba(2,6,23,0.03);
+  }
+  th{ font-weight:700; font-size:13px; color:#111827; position:sticky; top:0; background:transparent; }
+
+  .reset{
+    background:linear-gradient(90deg,#ff7a7a,#ffb4a2);
+    box-shadow:0 8px 20px rgba(255,122,122,0.12);
+  }
+
+  /* small hint only for accessibility (not shown to students): hidden visually */
+  .sr-only{
+    position:absolute!important;
+    width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;
+  }
+
+  /* nice little note area */
+  .help{
+    font-size:13px;color:var(--muted);
+  }
+
+</style>
+</head>
+<body>
+  <div class="wrap" id="app">
+    <header>
+      <div class="brand">
+        <div class="logo">SV</div>
+        <div>
+          <h1>Rashtrya Neeti School Elections — Vote Now</h1>
+          <p class="lead">Choose one candidate for each position. Press <strong>Submit Vote</strong> when done.</p>
+        </div>
+      </div>
+      <div class="meta">
+        <div class="help">Tip: Vote honestly — it's quick and easy.</div>
+      </div>
+    </header>
+
+    <main>
+      <form id="voteForm" onsubmit="return false;">
+        <div class="grid" id="positionsContainer">
+          <!-- Position cards injected by JS -->
+        </div>
+
+        <div style="display:flex;gap:12px;align-items:center;margin-top:12px;">
+          <button id="submitBtn" class="btn" type="button">Submit Vote</button>
+          <button id="clearFormBtn" class="btn ghost" type="button">Clear Selections</button>
+          <div style="flex:1"></div>
+          <div class="small">This device stores vote totals locally (localStorage).</div>
+        </div>
+
+        <div class="after-submit" id="afterSubmitBox" aria-live="polite">
+          <div>
+            <strong>Thank you!</strong>
+            <div class="small">Your vote was recorded.</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button id="nextVoterBtn" class="btn ghost" type="button">Next Voter</button>
+          </div>
+        </div>
+      </form>
+
+      <footer>
+        <small>Minimal, responsive, works offline. Admin panel is hidden (Shift + A).</small>
+      </footer>
+
+      <!-- Admin panel appears below when toggled by Shift + A -->
+      <section id="adminPanel" aria-hidden="true">
+        <div class="admin-inner">
+          <div class="admin-header">
+            <div>
+              <strong>Admin Panel — Live Results</strong>
+              <div class="small">Vote totals (updates when opened).</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button id="refreshBtn" class="btn ghost" type="button">Refresh</button>
+              <button id="resetAllBtn" class="btn reset" type="button">Reset All Votes</button>
+            </div>
+          </div>
+
+          <div class="results-wrap">
+            <div class="results-scroll" id="resultsScroll">
+              <!-- results table injected by JS -->
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <span class="sr-only" id="adminHint">Press Shift + A to toggle admin panel</span>
+  </div>
+
+<script>
+(() => {
+  // ======= Configuration: positions and candidate lists =======
+  const positions = [
+    { id: 'Virasat', title: 'Virasat', color: 'var(--accent1)', candidates: ['Avni', 'Mayank', 'Riya' , 'Nandini' , 'Khushi' , 'Pooja'] },
+    { id: 'Sahitya', title: 'Sahitya', color: 'var(--accent2)', candidates: ['Pragati', 'Ishal', 'Pushpanjali' , 'Kanishk' , 'Gaurav' , 'Ayan'] },
+    { id: 'Nirmaya', title: 'Nirmaya', color: 'var(--accent3)', candidates: ['Diya', 'Bhumi', 'Sonia' , 'Rahul' , 'Mehul' , 'Vishal'] },
+    { id: 'Neeti', title: 'Neeti', color: 'var(--accent4)', candidates: ['Harsh Bhati', 'Harman', 'Aruhi' , 'Vanshika' , 'Harshit' , 'Tarun'] },
+    { id: 'Eco Club', title: 'Eco Club', color: 'var(--accent6)', candidates: ['Priyanshi', 'Tanvi', 'Ashna' , 'Prince' ,'Teeksha', 'Inaya'] },
+    { id: 'Prahari', title: 'Prahari', color: 'var(--accent5)', candidates: ['Riyanshi', 'Faiz', 'Lakshya' , 'Atharv' , 'Apurav' , 'Naitik'] },
+    { id: 'Inclusive', title: 'Inclusive', color: 'var(--accent7)', candidates: ['Tanvi', 'Priyanshi', 'Somnath' , 'Kanak' , 'Alviya' , 'Vihan'] },
+  ];
+
+  const STORAGE_KEY = 'school_election_votes_v1';
+
+  // ======= Utilities =======
+  function getStoredVotes(){
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      // initialize
+      const base = {};
+      positions.forEach(p => {
+        base[p.id] = {};
+        p.candidates.forEach(c => base[p.id][c] = 0);
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(base));
+      return base;
+    }
+    try {
+      const parsed = JSON.parse(raw);
+      // ensure all positions and candidates exist (in case of schema older)
+      let changed = false;
+      positions.forEach(p => {
+        if (!(p.id in parsed)) { parsed[p.id] = {}; changed = true; }
+        p.candidates.forEach(c => { if (!(c in parsed[p.id])) { parsed[p.id][c] = 0; changed = true; }});
+      });
+      if (changed) localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+      return parsed;
+    } catch (e) {
+      // reset if corrupted
+      localStorage.removeItem(STORAGE_KEY);
+      return getStoredVotes();
+    }
+  }
+
+  function saveVotes(votes){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(votes));
+  }
+
+  // ======= Render vote form =======
+  const container = document.getElementById('positionsContainer');
+
+  function renderPositions(){
+    container.innerHTML = '';
+    positions.forEach((p, idx) => {
+      const card = document.createElement('div');
+      card.className = 'position-card';
+      card.innerHTML = `
+        <div class="pos-head">
+          <div class="pos-dot" style="background:${p.color}"></div>
+          <div>
+            <div style="font-weight:700">${idx + 1}. ${p.title}</div>
+            <div class="small">Select one candidate</div>
+          </div>
+        </div>
+        <div class="candidates" data-pos="${escapeAttr(p.id)}">
+          ${p.candidates.map((c,i) => `
+            <label class="option">
+              <input type="radio" name="${escapeAttr(p.id)}" value="${escapeAttr(c)}" />
+              <div>
+                <div style="font-weight:600">${escapeHtml(c)}</div>
+                <div class="small">Candidate ${i + 1}</div>
+              </div>
+            </label>
+          `).join('')}
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  // escape helpers
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+  function escapeAttr(s){ return String(s).replace(/["\\]/g, m => ({'"':'&quot;','\\':'\\\\'}[m])); }
+
+  // ======= Form logic =======
+  const submitBtn = document.getElementById('submitBtn');
+  const clearFormBtn = document.getElementById('clearFormBtn');
+  const voteForm = document.getElementById('voteForm');
+  const afterBox = document.getElementById('afterSubmitBox');
+  const nextVoterBtn = document.getElementById('nextVoterBtn');
+
+  function getSelections(){
+    const sel = {};
+    let allSelected = true;
+    positions.forEach(p => {
+      const val = voteForm.querySelector(`input[name="${p.id}"]:checked`);
+      if (val) sel[p.id] = val.value;
+      else { sel[p.id] = null; allSelected = false; }
+    });
+    return { sel, allSelected };
+  }
+
+  function clearSelections(){
+    voteForm.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+  }
+
+  function disableForm(flag){
+    voteForm.querySelectorAll('input, button').forEach(el => {
+      // keep Next Voter and admin buttons unaffected by this general disable
+      if (el.id === 'nextVoterBtn' || el.id === 'resetAllBtn' || el.id === 'refreshBtn') return;
+      el.disabled = flag;
+    });
+  }
+
+  submitBtn.addEventListener('click', () => {
+    const { sel, allSelected } = getSelections();
+    if (!allSelected){
+      alert('Please choose one candidate for each position before submitting.');
+      return;
+    }
+    // Confirmation box (native)
+    const confirmMsg = 'Confirm submission? You will not be able to change this vote (but the same device can be used by next voter).';
+    if (!confirm(confirmMsg)) return;
+
+    // increment counts
+    const votes = getStoredVotes();
+    positions.forEach(p => {
+      const candidate = sel[p.id];
+      if (candidate && (p.id in votes) && (candidate in votes[p.id])){
+        votes[p.id][candidate] = Number(votes[p.id][candidate] || 0) + 1;
+      }
+    });
+    saveVotes(votes);
+
+    // show success and Next Voter
+    afterBox.classList.add('show');
+    disableForm(true);
+    // update admin results if open
+    if (adminOpen) renderResults();
+  });
+
+  clearFormBtn.addEventListener('click', () => {
+    clearSelections();
+  });
+
+  nextVoterBtn.addEventListener('click', () => {
+    clearSelections();
+    afterBox.classList.remove('show');
+    disableForm(false);
+    // focus first option for accessibility
+    const firstRadio = voteForm.querySelector('input[type="radio"]');
+    if (firstRadio) firstRadio.focus();
+  });
+
+  // ======= Admin Panel behavior (Shift + A to toggle) =======
+  const adminPanel = document.getElementById('adminPanel');
+  let adminOpen = false;
+
+  function openAdmin(){
+    adminPanel.classList.add('open');
+    adminPanel.setAttribute('aria-hidden','false');
+    adminOpen = true;
+    renderResults();
+    // scroll into view smoothly so it appears below page content
+    setTimeout(() => { adminPanel.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, 140);
+  }
+  function closeAdmin(){
+    adminPanel.classList.remove('open');
+    adminPanel.setAttribute('aria-hidden','true');
+    adminOpen = false;
+  }
+  function toggleAdmin(){
+    if (adminOpen) closeAdmin(); else openAdmin();
+  }
+
+  // Listen for Shift + A (not shown on screen)
+  window.addEventListener('keydown', (e) => {
+    // Avoid toggling when focus is in an input element (to not interfere)
+    const active = document.activeElement;
+    const inInput = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable);
+    if (inInput) return;
+    if (e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+      toggleAdmin();
+    }
+  });
+
+  // ======= Admin: render results in scrollable panel =======
+  const resultsScroll = document.getElementById('resultsScroll');
+  const refreshBtn = document.getElementById('refreshBtn');
+  const resetAllBtn = document.getElementById('resetAllBtn');
+
+  function renderResults(){
+    const votes = getStoredVotes();
+    // Build table HTML grouped by position
+    let html = '';
+    positions.forEach(p => {
+      html += `<div style="margin-bottom:12px;">
+        <div style="font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px;">
+          <div style="width:10px;height:10px;border-radius:3px;background:${p.color}"></div>
+          ${escapeHtml(p.title)}
+        </div>
+        <table role="table" aria-label="${escapeHtml(p.title)} results">
+          <thead><tr><th>Candidate</th><th style="text-align:right">Votes</th></tr></thead>
+          <tbody>
+          ${p.candidates.map(c => {
+            const v = (votes[p.id] && Number(votes[p.id][c])) || 0;
+            return `<tr><td>${escapeHtml(c)}</td><td style="text-align:right">${v}</td></tr>`;
+          }).join('')}
+          </tbody>
+        </table>
+      </div>`;
+    });
+    resultsScroll.innerHTML = html;
+  }
+
+  refreshBtn.addEventListener('click', renderResults);
+
+  resetAllBtn.addEventListener('click', () => {
+    if (!confirm('Reset all vote totals? This will zero all counts.')) return;
+    // zero out and save
+    const base = {};
+    positions.forEach(p => { base[p.id] = {}; p.candidates.forEach(c => base[p.id][c] = 0); });
+    saveVotes(base);
+    renderResults();
+    alert('All vote totals reset.');
+  });
+
+  // ======= Initialize on load =======
+  renderPositions();
+  // ensure storage initially created
+  getStoredVotes();
+
+  // Accessibility: don't reveal the admin hint visibly (keeps hidden)
+  const adminHintEl = document.getElementById('adminHint');
+  if (adminHintEl) adminHintEl.style.display = 'none';
+
+  // small safety: if localStorage is unavailable, warn user
+  try {
+    localStorage.getItem('__test');
+  } catch (e){
+    alert('Warning: localStorage is unavailable. Votes cannot be saved persistently in this browser.');
+  }
+
+  // Prevent accidental form submission on Enter key inside radios
+  voteForm.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') e.preventDefault();
+  });
+
+})();
+</script>
+</body>
+</html>
