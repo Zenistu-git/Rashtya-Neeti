@@ -9,13 +9,13 @@
     --bg:#f7f9fc;
     --card:#ffffff;
     --muted:#6b7280;
-    --accent1:#60a5fa; /* blue */
-    --accent2:#f472b6; /* pink */
-    --accent3:#f6c86b; /* yellow */
-    --accent4:#34d399; /* green */
-    --accent5:#a78bfa; /* purple */
-    --accent6:#fb923c; /* orange */
-    --accent7:#60a5fa; /* repeat */
+    --accent1: #a491d3;
+    --accent2: #818aa3;
+    --accent3: #c5dca0;
+    --accent4: #f5f2b8;
+    --accent5: #f9dad0;
+    --accent6: #faddd4;
+    --accent7:#0d00a4; /* repeat */
     --glass: rgba(255,255,255,0.6);
     --radius:12px;
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
@@ -24,8 +24,13 @@
   html,body{
     height:100%;
     margin:0;
-    background: linear-gradient(180deg, #f0f6ff 0%, var(--bg) 100%);
+    background:
+      radial-gradient(circle at top right, #dbeafe, transparent 30%),
+      radial-gradient(circle at bottom left, #fce7f3, transparent 40%),
+      #f8fafc;
     color:#0f172a;
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
   }
 
   .wrap{
@@ -51,7 +56,10 @@
     width:52px;
     height:52px;
     border-radius:12px;
-    background:linear-gradient(135deg,var(--accent1),var(--accent5));
+    /* updated: animated multi-color gradient */
+    background: linear-gradient(135deg, var(--accent1), var(--accent5), var(--accent2));
+    background-size: 200% 200%;
+    animation: moveGrad 4s ease infinite alternate;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -61,7 +69,60 @@
     flex-shrink:0;
   }
 
-  h1{ font-size:20px; margin:0; }
+  /* new: make provided logo image fit nicely; hide fallback text when image loads */
+  .logo img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+    border-radius:12px;
+  }
+  .logo img + .logo-fallback{ display:none; }
+  .logo-fallback{ display:inline-block; }
+
+  /* new: school name above the page heading */
+  .school-name{
+    font-size:14px;
+    font-weight:800;
+    margin-bottom:8px;
+    color:var(--accent7);
+    text-transform:uppercase;
+    letter-spacing:.6px;
+    display:inline-block;
+  }
+  .school-name::after{
+    content:"";
+    display:block;
+    height:3px;
+    width:56px;
+    margin-top:8px;
+    border-radius:3px;
+    background:linear-gradient(90deg,var(--accent1),var(--accent5));
+    box-shadow:0 6px 18px rgba(13,0,164,0.06);
+  }
+
+  @keyframes moveGrad {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+  } 
+  h1{
+    font-size:28px;
+    margin:0;
+    line-height:1.05;
+    font-weight:800;
+    background:linear-gradient(90deg,var(--accent1),var(--accent5));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    /* small nicety for balanced wrapping (supported by modern browsers) */
+    text-wrap:balance;
+  }
+
+  @media (max-width:800px){
+    .school-name{ font-size:12px; }
+    h1{ font-size:20px; }
+  }
+
   p.lead{ margin:0; color:var(--muted); font-size:13px }
 
   main{
@@ -80,14 +141,33 @@
     .grid{ grid-template-columns: 1fr; }
   }
 
+  /* position card: switch to pseudo-element gradient outline */
   .position-card{
-    background:var(--card);
-    border-radius:var(--radius);
+    position: relative;
+    border-radius: 14px;
+    background: var(--card);
     padding:14px;
     box-shadow: 0 6px 18px rgba(16,24,40,0.03);
     transition: transform .18s ease, box-shadow .18s ease;
-    border:1px solid rgba(15,23,42,0.03);
+    z-index: 0;
   }
+
+  .position-card::before{
+    content: "";
+    position: absolute;
+    inset: 0;
+    padding: 1.5px; /* thickness of the visible gradient border */
+    border-radius: 14px;
+    background: linear-gradient(90deg, var(--accent1), var(--accent5), var(--accent2));
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    pointer-events: none;
+    z-index: -1;
+  }
+
   .position-card:hover{ transform: translateY(-4px); box-shadow:0 10px 30px rgba(16,24,40,0.06); }
 
   .pos-head{
@@ -99,29 +179,91 @@
 
   .pos-dot{
     width:14px;height:14px;border-radius:4px;flex-shrink:0;
+    /* added: base transition for smooth scaling on hover */
+    transition: transform .18s ease;
   }
 
-  .candidates{
-    display:flex;
-    flex-direction:column;
-    gap:8px;
-    margin-top:6px;
+  /* micro animation: slightly scale the dot when the card is hovered */
+  .position-card:hover .pos-head div:first-child {
+    transform: scale(1.12);
+    transition: transform .2s ease;
+    transform-origin: center;
   }
 
+  /* improved option styles: hover lift + selected color pop */
   label.option{
     display:flex;
     align-items:center;
-    gap:10px;
-    padding:8px;
+    gap:12px;
+    padding:10px;
     border-radius:10px;
     cursor:pointer;
     user-select:none;
-    border:1px solid rgba(2,6,23,0.03);
+    border:1px solid rgba(2,6,23,0.04);
+    background: transparent;
+    transition: transform .18s cubic-bezier(.2,.9,.2,1), box-shadow .18s ease, background .18s ease, border-color .18s ease;
   }
 
+  /* hover micro-interaction */
+  label.option:hover{
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 10px 22px rgba(13,0,164,0.06);
+    background: linear-gradient(180deg, rgba(13,0,164,0.025), rgba(164,145,211,0.01));
+    border-color: rgba(13,0,164,0.08);
+  }
+
+  /* radio control (kept visible for accessibility) */
   label.option input[type="radio"]{
-    accent-color: #2563eb;
+    accent-color: var(--accent1);
     width:18px;height:18px;
+    flex-shrink:0;
+    margin:0;
+    margin-right:2px;
+    transition: box-shadow .15s ease, transform .12s ease;
+  }
+
+  /* avatar polish */
+  .avatar{
+    width:36px;
+    height:36px;
+    border-radius:50%;
+    background:var(--accent1);
+    color:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:700;
+    font-size:14px;
+    flex-shrink:0;
+    transition: transform .18s cubic-bezier(.2,.9,.2,1), box-shadow .18s ease, background .3s ease;
+  }
+
+  /* selected avatar (fallback) — styles avatar/text when input is checked */
+  label.option input[type="radio"]:checked + .avatar{
+    transform: scale(1.06);
+    box-shadow: 0 10px 30px rgba(13,0,164,0.14);
+    background: linear-gradient(90deg, var(--accent1), var(--accent5));
+    background-size: 200% 200%;
+  }
+
+  /* emphasize the candidate name when selected (fallback) */
+  label.option input[type="radio"]:checked + .avatar + div > div {
+    color: #0b0720; /* darker text for contrast */
+    font-weight:700;
+  }
+
+  /* full-label selected style using :has (preferred where supported) */
+  label.option:has(input[type="radio"]:checked){
+    background: linear-gradient(180deg, rgba(13,0,164,0.03), rgba(164,145,211,0.02));
+    border-color: transparent;
+    box-shadow: 0 14px 36px rgba(13,0,164,0.06);
+    transform: translateY(-3px);
+  }
+
+  /* keyboard focus visibility */
+  label.option input[type="radio"]:focus-visible + .avatar{
+    outline: 3px solid rgba(13,0,164,0.14);
+    outline-offset: 3px;
   }
 
   .small{ font-size:13px;color:var(--muted); }
@@ -200,6 +342,13 @@
     opacity:1;
     pointer-events:auto;
     margin-top:18px;
+    /* added: smooth drop animation for a more "techy" reveal */
+    animation: drop 0.35s ease forwards;
+  }
+
+  @keyframes drop {
+    from { transform: scaleY(0.8); opacity: 0; }
+    to { transform: scaleY(1); opacity: 1; }
   }
 
   .admin-inner{
@@ -256,14 +405,69 @@
     font-size:13px;color:var(--muted);
   }
 
+  /* floating admin tip button */
+  .floater{
+    position:fixed;
+    bottom:20px;
+    right:20px;
+    width:42px;
+    height:42px;
+    background:linear-gradient(135deg, var(--accent1), var(--accent5));
+    box-shadow:0 0 22px rgba(96,165,250,0.5);
+    border-radius:50%;
+    color:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:700;
+    cursor:pointer;
+    border:0;
+    z-index:60;
+    animation:pulse 2s infinite;
+  }
+
+  @keyframes pulse{
+    0% { transform: scale(1); box-shadow:0 0 12px rgba(96,165,250,0.18); }
+    50% { transform: scale(1.06); box-shadow:0 0 22px rgba(96,165,250,0.35); }
+    100% { transform: scale(1); box-shadow:0 0 12px rgba(96,165,250,0.18); }
+  }
+
+  /* small transient tip bubble shown when the floater is clicked */
+  .floater-tip{
+    position:fixed;
+    bottom:74px;
+    right:20px;
+    background:rgba(2,6,23,0.92);
+    color:#fff;
+    padding:8px 12px;
+    border-radius:8px;
+    font-size:13px;
+    opacity:0;
+    transform:translateY(6px);
+    transition: opacity .18s ease, transform .18s ease;
+    pointer-events:none;
+    z-index:60;
+  }
+  .floater-tip.show{
+    opacity:1;
+    transform:translateY(0);
+    pointer-events:auto;
+  }
+
 </style>
 </head>
 <body>
   <div class="wrap" id="app">
     <header>
       <div class="brand">
-        <div class="logo">SV</div>
+        <div class="logo">
+          <!-- use your provided logo file (place school-logo.png beside index.html). hides itself if file missing -->
+          <img src="logo cm shri.jpg" alt="CM Shri Yamuna Vihar logo" id="schoolLogo" onerror="this.style.display='none'" />
+          <span class="logo-fallback">SV</span>
+        </div>
         <div>
+          <!-- new school heading -->
+          <div class="school-name">CM Shri Yamuna Vihar</div>
           <h1>Rashtrya Neeti School Elections — Vote Now</h1>
           <p class="lead">Choose one candidate for each position. Press <strong>Submit Vote</strong> when done.</p>
         </div>
@@ -326,6 +530,15 @@
 
     <span class="sr-only" id="adminHint">Press Shift + A to toggle admin panel</span>
   </div>
+
+  <!-- floating admin tip button (keeps Shift+A as secret entrance) -->
+  <button id="adminFloater" class="floater" aria-label="Admin tip" title="Admin tip (Shift + A)">
+    ⚙
+  </button>
+  <div id="floaterTip" class="floater-tip" role="status" aria-live="polite">Tip: Press Shift + A to open the admin panel</div>
+
+  <!-- load canvas-confetti (lightweight) -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 
 <script>
 (() => {
@@ -396,6 +609,7 @@
           ${p.candidates.map((c,i) => `
             <label class="option">
               <input type="radio" name="${escapeAttr(p.id)}" value="${escapeAttr(c)}" />
+              <div class="avatar">${escapeHtml(c.charAt(0))}</div>
               <div>
                 <div style="font-weight:600">${escapeHtml(c)}</div>
                 <div class="small">Candidate ${i + 1}</div>
@@ -465,6 +679,12 @@
     // show success and Next Voter
     afterBox.classList.add('show');
     disableForm(true);
+
+    // fire confetti if library loaded
+    if (typeof confetti === 'function') {
+      try { confetti({ particleCount: 160, spread: 80 }); } catch (e) { /* ignore */ }
+    }
+
     // update admin results if open
     if (adminOpen) renderResults();
   });
@@ -554,6 +774,22 @@
     renderResults();
     alert('All vote totals reset.');
   });
+
+  // ======= floater: show a small admin tip (keeps Shift+A as the secret toggle)
+  const floater = document.getElementById('adminFloater');
+  const floaterTip = document.getElementById('floaterTip');
+  let floaterTimer = null;
+  if (floater && floaterTip) {
+    floater.addEventListener('click', () => {
+      floaterTip.classList.add('show');
+      // auto-hide after 3s
+      if (floaterTimer) clearTimeout(floaterTimer);
+      floaterTimer = setTimeout(() => floaterTip.classList.remove('show'), 3000);
+      // also make tip focusable for screen readers briefly
+      floaterTip.setAttribute('tabindex','-1');
+      floaterTip.focus({ preventScroll:true });
+    });
+  }
 
   // ======= Initialize on load =======
   renderPositions();
